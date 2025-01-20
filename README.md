@@ -12,12 +12,48 @@ This solution helps DevOps teams maintain optimal EC2 performance by:
 
 ## Architecture
 
+```mermaid
+flowchart LR
+    EC2[EC2 Instances] -->|Metrics| CW[CloudWatch]
+    CW -->|Exceeds Threshold| AL[CloudWatch Alarm]
+    AL -->|Triggers| LF[Lambda Function]
+    LF -->|Formats Alert| SW[Slack Webhook]
+    SW -->|Notification| SC[Slack Channel]
+    
+    subgraph AWS Cloud
+        EC2
+        CW
+        AL
+        LF
+    end
+    
+    subgraph Slack Workspace
+        SW
+        SC
+    end
+    
+    style EC2 fill:#FF9900
+    style CW fill:#FF4F8B
+    style AL fill:#FF4F8B
+    style LF fill:#009900
+    style SW fill:#4A154B
+    style SC fill:#4A154B
+```
+
 The solution implements the following workflow:
 1. CloudWatch monitors EC2 instance metrics at regular intervals
 2. When utilization exceeds the defined threshold, CloudWatch triggers the Lambda function
 3. The Lambda function processes the alert and formats the message
 4. A detailed notification is sent to the specified Slack channel via webhook
 5. Teams can immediately respond to potential performance issues
+
+## Features
+
+- **Real-time Monitoring**: Continuous EC2 resource utilization tracking
+- **Customizable Thresholds**: Flexible alert triggers based on your requirements
+- **Detailed Notifications**: Rich Slack messages with comprehensive metrics
+- **Serverless Architecture**: Low maintenance and cost-effective solution
+- **Easy Deployment**: Automated deployment using AWS SAM
 
 ## Prerequisites
 
@@ -55,7 +91,6 @@ cd ..
 ### 3. Configure the Application
 
 Update `template.yaml` with your specific configuration:
-it is reusable , you add this while deploying 
 
 ```yaml
 Globals:
