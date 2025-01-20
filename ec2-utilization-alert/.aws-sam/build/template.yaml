@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Deploy a Lambda function for Slack alerts on EC2 utilization
+Parameters:
+  SlackWebhookURL:
+    Type: String
+    Description: Slack webhook URL for sending alerts.
+    NoEcho: true
+  CPUThreshold:
+    Type: Number
+    Default: 80
+    MinValue: 1
+    MaxValue: 100
+    Description: CPU Utilization threshold (percentage) for EC2 alarm.
+  EC2InstanceId:
+    Type: String
+    Description: EC2 Instance ID for monitoring.
+Resources:
+  EC2HighUtilizationAlertFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.lambda_handler
+      CodeUri: EC2HighUtilizationAlertFunction
+      Environment:
+        Variables:
+          SLACK_WEBHOOK_URL:
+            Ref: SlackWebhookURL
+      Runtime: python3.9
+      Timeout: 10
+      MemorySize: 256
+      Policies:
+      - Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - logs:CreateLogGroup
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+          Resource: '*'
+    Metadata:
+      SamResourceId: EC2HighUtilizationAlertFunction
+  LambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName:
+        Fn::GetAtt:
+        - EC2HighUtilizationAlertFunction
+        - Arn
+      Action: lambda:InvokeFunction
+      Principal: cloudwatch.amazonaws.com
+      SourceAccount:
+        Ref: AWS::AccountId
+  HighCPUUtilizationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    DependsOn: LambdaInvokePermission
+    Properties:
+      AlarmName:
+        Fn::Sub: ${EC2InstanceId}-High-CPU-Utilization
+      AlarmDescription:
+        Fn::Sub: Alarm when CPU exceeds ${CPUThreshold}% for EC2 instance ${EC2InstanceId}
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      DatapointsToAlarm: 2
+      Threshold:
+        Ref: CPUThreshold
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+      - Fn::GetAtt:
+        - EC2HighUtilizationAlertFunction
+        - Arn
+      Dimensions:
+      - Name: InstanceId
+        Value:
+          Ref: EC2InstanceId
+Outputs:
+  LambdaFunctionName:
+    Description: Name of the deployed Lambda function
+    Value:
+      Ref: EC2HighUtilizationAlertFunction
+  CloudWatchAlarmName:
+    Description: Name of the CloudWatch Alarm
+    Value:
+      Ref: HighCPUUtilizationAlarm
