@@ -27,7 +27,7 @@ Resources:
       Environment:
         Variables:
           SLACK_WEBHOOK_URL: !Ref SlackWebhookURL
-      Runtime: python3.9
+      Runtime: python3.10
       Timeout: 10
       MemorySize:  256
       Policies:
@@ -46,7 +46,7 @@ Resources:
     Properties:
       FunctionName: !GetAtt EC2HighUtilizationAlertFunction.Arn
       Action: "lambda:InvokeFunction"
-      Principal: "cloudwatch.amazonaws.com"
+      Principal: "lambda.alarms.cloudwatch.amazonaws.com"
       SourceAccount: !Ref AWS::AccountId
 
   # CloudWatch Alarm
