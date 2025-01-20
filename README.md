@@ -70,35 +70,6 @@ This solution helps DevOps teams maintain optimal EC2 performance by:
 - Sending immediate notifications to Slack when utilization exceeds specified thresholds
 - Providing detailed metrics in notifications to facilitate quick decision-making
 - Leveraging serverless architecture to minimize operational overhead
-## Architecture
-
-```mermaid
-flowchart LR
-    EC2[EC2 Instances] -->|Metrics| CW[CloudWatch]
-    CW -->|Exceeds Threshold| AL[CloudWatch Alarm]
-    AL -->|Triggers| LF[Lambda Function]
-    LF -->|Formats Alert| SW[Slack Webhook]
-    SW -->|Notification| SC[Slack Channel]
-    
-    subgraph AWS Cloud
-        EC2
-        CW
-        AL
-        LF
-    end
-    
-    subgraph Slack Workspace
-        SW
-        SC
-    end
-    
-    style EC2 fill:#FF9900
-    style CW fill:#FF4F8B
-    style AL fill:#FF4F8B
-    style LF fill:#009900
-    style SW fill:#4A154B
-    style SC fill:#4A154B
-```
 
 The solution implements the following workflow:
 1. CloudWatch monitors EC2 instance metrics at regular intervals
