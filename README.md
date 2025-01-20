@@ -107,6 +107,7 @@ Before deployment, ensure you have:
 ```bash
 git clone https://github.com/Minhajms/ec2-slack-alert-lambda.git
 cd ec2-slack-alert-lambda
+git checkout master
 ```
 
 ### 2. Set Up the Python Environment
